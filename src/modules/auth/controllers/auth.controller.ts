@@ -1,11 +1,13 @@
 import { Response } from 'express';
+import { BadRequestError } from '../../../shared/utils/errors';
 import { sendSuccess } from '../../../shared/utils/response';
 import { AuthRequest } from '../types/auth.types';
 import { authService } from '../services/auth.service';
+import { clearRefreshTokenCookie } from '../utils/refreshCookie';
 import {
-  clearRefreshTokenCookie,
-  setRefreshTokenCookie,
-} from '../utils/refreshCookie';
+  deliverAuthTokens,
+  getRefreshTokenFromRequest,
+} from '../utils/tokenDelivery';
 
 export class AuthController {
   async createUser(req: AuthRequest, res: Response): Promise<void> {
@@ -14,24 +16,35 @@ export class AuthController {
   }
 
   async login(req: AuthRequest, res: Response): Promise<void> {
-    const { refreshToken, ...result } = await authService.login(
+    const { refreshToken, accessToken, user } = await authService.login(
       req.body.email,
       req.body.password
     );
-    setRefreshTokenCookie(res, refreshToken);
-    sendSuccess(res, 'Login successful', result);
+
+    const data = deliverAuthTokens(
+      res,
+      { accessToken, refreshToken },
+      { user }
+    );
+    sendSuccess(res, 'Login successful', data);
   }
 
   async refreshToken(req: AuthRequest, res: Response): Promise<void> {
-    const tokens = await authService.refreshToken(req.cookies.refreshToken);
-    setRefreshTokenCookie(res, tokens.refreshToken);
-    sendSuccess(res, 'Token refreshed successfully', {
-      accessToken: tokens.accessToken,
-    });
+    const refreshToken = getRefreshTokenFromRequest(req);
+    if (!refreshToken) {
+      throw new BadRequestError(
+        'Refresh token is required',
+        'refreshToken: missing from cookies and body'
+      );
+    }
+
+    const tokens = await authService.refreshToken(refreshToken);
+    const data = deliverAuthTokens(res, tokens);
+    sendSuccess(res, 'Token refreshed successfully', data);
   }
 
   async logout(req: AuthRequest, res: Response): Promise<void> {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = getRefreshTokenFromRequest(req);
     if (refreshToken) {
       await authService.logout(refreshToken);
     }

@@ -7,6 +7,13 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(5000),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  /**
+   * How refresh tokens are delivered to clients:
+   * - cookie: httpOnly cookie (recommended for browser SPAs)
+   * - body: JSON response body (APIs / mobile / non-cookie clients)
+   * Refresh/logout always accept token from cookie OR body.
+   */
+  AUTH_TOKEN_DELIVERY: z.enum(['cookie', 'body']).default('cookie'),
   MONGODB_URI: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),

@@ -10,7 +10,6 @@ import {
   createUserSchema,
   forgotPasswordSchema,
   loginSchema,
-  refreshTokenSchema,
   resetPasswordWithCurrentSchema,
   resetPasswordWithTokenSchema,
   verifyOtpSchema,
@@ -40,7 +39,6 @@ router.post(
 
 router.post(
   '/refresh-token',
-  validate(refreshTokenSchema, 'cookies'),
   asyncHandler((req, res) => authController.refreshToken(req, res))
 );
 
