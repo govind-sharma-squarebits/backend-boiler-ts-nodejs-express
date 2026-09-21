@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import rateLimit from 'express-rate-limit';
+import { isS3Configured } from '../config/env';
 import { authRoutes } from '../modules/auth';
-import { uploadRoutes } from '../modules/file-upload';
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -9,8 +9,6 @@ const authLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many requests. Please try again later',
-    developerMessage:
-      'Rate limit exceeded on /api/auth routes (50 requests per 15 minutes)',
   },
 });
 
@@ -20,12 +18,18 @@ const uploadLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many upload requests. Please try again later',
-    developerMessage:
-      'Rate limit exceeded on /api/upload routes (20 requests per 15 minutes)',
   },
 });
 
 export function registerRoutes(app: Express): void {
   app.use('/api/auth', authLimiter, authRoutes);
-  app.use('/api/upload', uploadLimiter, uploadRoutes);
+
+  if (isS3Configured()) {
+    // Lazy-load so AWS SDK/multer-s3 only initialize when S3 env is present
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { uploadRoutes } = require('../modules/file-upload') as typeof import('../modules/file-upload');
+    app.use('/api/upload', uploadLimiter, uploadRoutes);
+  } else {
+    console.warn('[config] AWS S3 not configured — /api/upload disabled');
+  }
 }

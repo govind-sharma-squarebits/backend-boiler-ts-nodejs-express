@@ -1,8 +1,11 @@
 import { Response } from 'express';
-import { env } from '../../../config/env';
 import { sendSuccess } from '../../../shared/utils/response';
 import { AuthRequest } from '../types/auth.types';
 import { authService } from '../services/auth.service';
+import {
+  clearRefreshTokenCookie,
+  setRefreshTokenCookie,
+} from '../utils/refreshCookie';
 
 export class AuthController {
   async createUser(req: AuthRequest, res: Response): Promise<void> {
@@ -11,25 +14,20 @@ export class AuthController {
   }
 
   async login(req: AuthRequest, res: Response): Promise<void> {
-    const { refreshToken, ...result } = await authService.login(req.body.email, req.body.password);
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    const { refreshToken, ...result } = await authService.login(
+      req.body.email,
+      req.body.password
+    );
+    setRefreshTokenCookie(res, refreshToken);
     sendSuccess(res, 'Login successful', result);
   }
 
   async refreshToken(req: AuthRequest, res: Response): Promise<void> {
     const tokens = await authService.refreshToken(req.cookies.refreshToken);
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    setRefreshTokenCookie(res, tokens.refreshToken);
+    sendSuccess(res, 'Token refreshed successfully', {
+      accessToken: tokens.accessToken,
     });
-    sendSuccess(res, 'Token refreshed successfully', { accessToken: tokens.accessToken });
   }
 
   async logout(req: AuthRequest, res: Response): Promise<void> {
@@ -37,11 +35,7 @@ export class AuthController {
     if (refreshToken) {
       await authService.logout(refreshToken);
     }
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
+    clearRefreshTokenCookie(res);
     sendSuccess(res, 'Logged out successfully');
   }
 

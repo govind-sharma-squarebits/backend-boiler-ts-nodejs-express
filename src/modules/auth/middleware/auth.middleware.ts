@@ -1,7 +1,6 @@
 import { NextFunction, Response } from 'express';
 import { getBearerToken } from '../../../shared/utils/bearerToken';
 import {
-  BadRequestError,
   ForbiddenError,
   UnauthorizedError,
 } from '../../../shared/utils/errors';
@@ -35,24 +34,6 @@ export function authenticate(
       )
     );
   }
-}
-
-export function requireBearerToken(
-  req: AuthRequest,
-  _res: Response,
-  next: NextFunction
-): void {
-  const token = getBearerToken(req);
-  if (!token) {
-    return next(
-      new BadRequestError(
-        'Refresh token is required',
-        'requireBearerToken: missing or malformed Authorization header (expected Bearer <token>)'
-      )
-    );
-  }
-  req.bearerToken = token;
-  next();
 }
 
 export function requireRoles(...allowedRoles: UserRole[]) {

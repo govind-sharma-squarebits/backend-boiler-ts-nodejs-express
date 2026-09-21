@@ -4,10 +4,10 @@ export interface ApiResponse<T = unknown> {
   data?: T;
 }
 
-/** Error payload — `message` is user-facing; `developerMessage` is for debugging */
+/** Error payload — `message` is user-facing; `developerMessage` is for debugging (non-production only) */
 export interface ApiErrorResponse {
   success: false;
   message: string;
-  developerMessage: string;
+  developerMessage?: string;
   errors?: Record<string, string[] | undefined>;
 }

@@ -21,6 +21,7 @@ import {
   verifyResetToken,
 } from '../utils/jwt.util';
 import { generateOtp, hashOtp, verifyOtpHash } from '../utils/otp.util';
+import { parseDurationToMs } from '../../../shared/utils/duration';
 
 const ROLE_RANK: Record<UserRole, number> = {
   [UserRole.USER]: 1,
@@ -59,8 +60,9 @@ async function issueTokenPair(user: IUser) {
     tokenId,
   });
 
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
+  const expiresAt = new Date(
+    Date.now() + parseDurationToMs(env.JWT_REFRESH_EXPIRES_IN)
+  );
 
   await RefreshToken.create({
     userId: user._id,

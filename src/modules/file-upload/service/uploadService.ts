@@ -19,7 +19,7 @@ const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 const upload = multer({
   storage: multerS3({
     s3: s3Client,
-    bucket: env.AWS_S3_BUCKET_NAME,
+    bucket: env.AWS_S3_BUCKET_NAME!,
     contentType: multerS3.AUTO_CONTENT_TYPE,
     metadata(req, _file, cb) {
       const userId = (req as AuthRequest).user?.sub;

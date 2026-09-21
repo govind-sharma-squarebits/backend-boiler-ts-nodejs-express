@@ -19,5 +19,4 @@ export interface JwtResetPayload {
 
 export interface AuthRequest extends Request {
   user?: JwtAccessPayload;
-  bearerToken?: string;
 }

@@ -23,6 +23,9 @@ export function errorHandler(
   _next: NextFunction
 ): void {
   if (err instanceof AppError) {
+    if (env.NODE_ENV === 'production') {
+      console.error(`[${err.statusCode}] ${err.developerMessage}`);
+    }
     res.status(err.statusCode).json(
       buildErrorBody(err.userMessage, err.developerMessage)
     );
@@ -30,11 +33,15 @@ export function errorHandler(
   }
 
   if (err instanceof ZodError) {
+    const developerMessage = `Validation failed: ${formatZodDeveloperMessage(err)}`;
+    if (env.NODE_ENV === 'production') {
+      console.error(developerMessage);
+    }
     sendError(
       res,
       400,
       'Please check your input and try again',
-      `Validation failed: ${formatZodDeveloperMessage(err)}`,
+      developerMessage,
       { errors: err.flatten().fieldErrors }
     );
     return;

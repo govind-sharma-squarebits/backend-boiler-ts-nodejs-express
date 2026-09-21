@@ -24,10 +24,11 @@ const envSchema = z.object({
   BOOTSTRAP_ADMIN_EMAIL: z.string().email().optional(),
   BOOTSTRAP_ADMIN_PASSWORD: z.string().min(8).optional(),
   BOOTSTRAP_ADMIN_NAME: z.string().optional(),
-  AWS_REGION: z.string().min(1),
-  AWS_ACCESS_KEY_ID: z.string().min(1),
-  AWS_SECRET_ACCESS_KEY: z.string().min(1),
-  AWS_S3_BUCKET_NAME: z.string().min(1),
+  // Optional — when unset, /api/upload is disabled
+  AWS_REGION: z.string().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  AWS_S3_BUCKET_NAME: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -38,3 +39,12 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+export function isS3Configured(): boolean {
+  return Boolean(
+    env.AWS_REGION &&
+      env.AWS_ACCESS_KEY_ID &&
+      env.AWS_SECRET_ACCESS_KEY &&
+      env.AWS_S3_BUCKET_NAME
+  );
+}

@@ -1,17 +1,25 @@
 import { Response } from 'express';
+import { env } from '../../config/env';
 import { ApiErrorResponse, ApiResponse } from '../types/api.types';
+
+const includeDeveloperMessage = env.NODE_ENV !== 'production';
 
 export function buildErrorBody(
   userMessage: string,
   developerMessage: string,
   extra?: Record<string, unknown>
 ): ApiErrorResponse {
-  return {
+  const body: ApiErrorResponse = {
     success: false,
     message: userMessage,
-    developerMessage,
     ...extra,
   };
+
+  if (includeDeveloperMessage) {
+    body.developerMessage = developerMessage;
+  }
+
+  return body;
 }
 
 export function sendError(
