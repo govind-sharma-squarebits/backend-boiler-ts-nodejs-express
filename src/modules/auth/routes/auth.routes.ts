@@ -3,7 +3,6 @@ import { validate } from '../../../shared/middleware/validate';
 import { authController } from '../controllers/auth.controller';
 import {
   authenticate,
-  requireBearerToken,
   requireRoles,
 } from '../middleware/auth.middleware';
 import { UserRole } from '../models/user.model';
@@ -41,13 +40,12 @@ router.post(
 
 router.post(
   '/refresh-token',
-  validate(refreshTokenSchema),
+  validate(refreshTokenSchema, 'cookies'),
   asyncHandler((req, res) => authController.refreshToken(req, res))
 );
 
 router.post(
   '/logout',
-  requireBearerToken,
   asyncHandler((req, res) => authController.logout(req, res))
 );
 

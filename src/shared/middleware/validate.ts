@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 type Schema = z.ZodType;
 
-export function validate(schema: Schema, source: 'body' | 'query' = 'body') {
+export function validate(schema: Schema, source: 'body' | 'query' | 'cookies' = 'body') {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req[source]);
     if (!result.success) {

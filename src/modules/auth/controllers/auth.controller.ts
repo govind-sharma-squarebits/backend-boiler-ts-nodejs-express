@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { env } from '../../../config/env';
 import { sendSuccess } from '../../../shared/utils/response';
 import { AuthRequest } from '../types/auth.types';
 import { authService } from '../services/auth.service';
@@ -10,17 +11,37 @@ export class AuthController {
   }
 
   async login(req: AuthRequest, res: Response): Promise<void> {
-    const result = await authService.login(req.body.email, req.body.password);
+    const { refreshToken, ...result } = await authService.login(req.body.email, req.body.password);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     sendSuccess(res, 'Login successful', result);
   }
 
   async refreshToken(req: AuthRequest, res: Response): Promise<void> {
-    const tokens = await authService.refreshToken(req.body.refreshToken);
-    sendSuccess(res, 'Token refreshed successfully', tokens);
+    const tokens = await authService.refreshToken(req.cookies.refreshToken);
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    sendSuccess(res, 'Token refreshed successfully', { accessToken: tokens.accessToken });
   }
 
   async logout(req: AuthRequest, res: Response): Promise<void> {
-    await authService.logout(req.bearerToken!);
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      await authService.logout(refreshToken);
+    }
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
     sendSuccess(res, 'Logged out successfully');
   }
 

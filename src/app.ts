@@ -2,13 +2,21 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { env } from './config/env';
 import { errorHandler } from './shared/middleware/errorHandler';
 import { registerRoutes } from './routes';
 
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: true, credentials: true }));
+
+const origins = env.CORS_ORIGIN.split(',').map((o) => o.trim());
+app.use(
+  cors({
+    origin: origins.length === 1 ? origins[0] : origins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
