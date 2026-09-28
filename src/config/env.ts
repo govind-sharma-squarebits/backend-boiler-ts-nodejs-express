@@ -32,10 +32,18 @@ const envSchema = z.object({
   BOOTSTRAP_ADMIN_PASSWORD: z.string().min(8).optional(),
   BOOTSTRAP_ADMIN_NAME: z.string().optional(),
   // Optional — when unset, /api/upload is disabled
+  // Region and Bucket are the minimum required to enable S3 (credentials can be provided by IAM Roles)
   AWS_REGION: z.string().optional(),
+  AWS_S3_BUCKET_NAME: z.string().optional(),
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
-  AWS_S3_BUCKET_NAME: z.string().optional(),
+  AWS_SESSION_TOKEN: z.string().optional(),
+  AWS_S3_ENDPOINT: z.string().optional(),
+  AWS_S3_FORCE_PATH_STYLE: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
+  CDN_BASE_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -48,10 +56,5 @@ if (!parsed.success) {
 export const env = parsed.data;
 
 export function isS3Configured(): boolean {
-  return Boolean(
-    env.AWS_REGION &&
-      env.AWS_ACCESS_KEY_ID &&
-      env.AWS_SECRET_ACCESS_KEY &&
-      env.AWS_S3_BUCKET_NAME
-  );
+  return Boolean(env.AWS_REGION && env.AWS_S3_BUCKET_NAME);
 }

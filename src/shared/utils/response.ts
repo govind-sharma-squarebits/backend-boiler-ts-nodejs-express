@@ -6,7 +6,7 @@ const includeDeveloperMessage = env.NODE_ENV !== 'production';
 
 export function buildErrorBody(
   userMessage: string,
-  developerMessage: string,
+  developerMessage: string = userMessage,
   extra?: Record<string, unknown>
 ): ApiErrorResponse {
   const body: ApiErrorResponse = {
@@ -26,7 +26,7 @@ export function sendError(
   res: Response,
   statusCode: number,
   userMessage: string,
-  developerMessage: string,
+  developerMessage: string = userMessage,
   extra?: Record<string, unknown>
 ): void {
   res.status(statusCode).json(buildErrorBody(userMessage, developerMessage, extra));

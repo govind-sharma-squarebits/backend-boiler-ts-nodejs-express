@@ -203,6 +203,56 @@
             },
             "url": "{{baseUrl}}/api/upload"
           }
+        },
+        {
+          "name": "Delete image",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"uploads/example-key.jpg\"\n}"
+            },
+            "url": "{{baseUrl}}/api/upload"
+          }
+        },
+        {
+          "name": "Presigned Upload URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"avatar.jpg\",\n  \"mimeType\": \"image/jpeg\"\n}"
+            },
+            "url": "{{baseUrl}}/api/upload/presign-upload"
+          }
+        },
+        {
+          "name": "Presigned Download URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/upload/presign-download?key=uploads/example-key.jpg",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "upload", "presign-download"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "uploads/example-key.jpg"
+                }
+              ]
+            }
+          }
         }
       ]
     }
